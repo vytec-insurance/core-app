@@ -1,11 +1,28 @@
 
 pipeline {
-    agent any
+    agent {label 'maven-label'}
+
+    tools {
+        maven "M3"
+    }
 
     stages {
-        stage('Hello') {
+        stage('Build') {
             steps {
-                echo 'Hello World'
+                git branch: 'develop', url: 'https://github.com/vytec-insurance/core-app.git'
+            
+                sh "mvn -Dmaven.test.failure.ignore=true clean package"
+
+                // To run Maven on a Windows agent, use
+                // bat "mvn -Dmaven.test.failure.ignore=true clean package"
+            }
+
+            post {
+                
+                success {
+                    junit '**/target/surefire-reports/TEST-*.xml'
+                    archiveArtifacts 'target/*.jar'
+                }
             }
         }
     }
